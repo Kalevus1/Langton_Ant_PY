@@ -1,15 +1,3 @@
-"""
-langtons_ant_fixed_viewport.py
-Versión finalizada de la simulación de Langton's Ant:
-- Viewport (clip) lateral: el canvas NUNCA invade el panel derecho (opción A)
-- Panel lateral responsivo y siempre al frente
-- Zoom real centrado en el cursor (niveles predefinidos)
-- Pan con botón derecho, click izquierdo para alternar celdas
-- Indicador de zoom en el panel
-- Colores mejorados, textos alineados
-- Intenta cargar logo desde: /mnt/data/cb1011a1-b921-4581-af88-8ceb1fc72800.png
-"""
-
 import os
 import sys
 import time
@@ -655,3 +643,4 @@ class LangtonsAntApp:
 if __name__ == "__main__":
     app = LangtonsAntApp((1300, 820))
     app.run()
+
