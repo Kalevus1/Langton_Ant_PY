@@ -1,0 +1,3 @@
+# Librerías para la Hormiga de Langton (Python 3.12)
+pygame==2.6.1
+numpy==2.5.1
