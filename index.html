@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hormiga de Langton</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            color: white;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        header {
+            text-align: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            color: #fdbb2d;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            color: #ccc;
+            margin-bottom: 15px;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .game-area {
+            flex: 1;
+            min-width: 300px;
+            background: #000;
+            border: 2px solid #444;
+            border-radius: 5px;
+            overflow: hidden;
+            position: relative;
+            height: 600px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+        
+        .canvas-container {
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            position: relative;
+        }
+        
+        #gameCanvas {
+            display: block;
+            background-color: #000;
+        }
+        
+        .controls {
+            flex: 0 0 300px;
+            background: rgba(30, 30, 40, 0.8);
+            border-radius: 10px;
+            padding: 20px;
+        }
+        
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        button {
+            flex: 1;
+            min-width: 120px;
+            padding: 12px 15px;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(to bottom, #4a4a8a, #2a2a5a);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.3);
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 8px rgba(0, 0, 0, 0.4);
+        }
+        
+        button:active {
+            transform: translateY(1px);
+        }
+        
+        .play-btn { background: linear-gradient(to bottom, #2ecc71, #27ae60); }
+        .pause-btn { background: linear-gradient(to bottom, #e74c3c, #c0392b); }
+        .next-btn { background: linear-gradient(to bottom, #3498db, #2980b9); }
+        .reset-btn { background: linear-gradient(to bottom, #e67e22, #d35400); }
+        .speed-btn { background: linear-gradient(to bottom, #9b59b6, #8e44ad); }
+        .help-btn { background: linear-gradient(to bottom, #f1c40f, #f39c12); }
+        .zoom-btn { background: linear-gradient(to bottom, #1abc9c, #16a085); }
+        
+        .stats {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-box {
+            background: rgba(40, 40, 50, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            height: 85px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+        }
+        
+        .stat-value {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #fdbb2d;
+            height: 35px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        
+        .stat-label {
+            font-size: 0.9rem;
+            color: #aaa;
+            margin-top: 5px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .rules {
+            background: rgba(40, 40, 50, 0.8);
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .rules h3 {
+            color: #fdbb2d;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 5px;
+        }
+        
+        .rules ul {
+            list-style-type: none;
+            padding-left: 10px;
+        }
+        
+        .rules li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .rules li:before {
+            content: "•";
+            color: #fdbb2d;
+            position: absolute;
+            left: 0;
+        }
+        
+        .phase-indicator {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(40, 40, 50, 0.8);
+            border-radius: 8px;
+            text-align: center;
+            height: 85px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .phase-text {
+            font-weight: bold;
+            color: #fdbb2d;
+            font-size: 1.1rem;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 700px;
+            width: 90%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .close-btn {
+            background: linear-gradient(to bottom, #e74c3c, #c0392b);
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        .explanation {
+            line-height: 1.6;
+        }
+        
+        .explanation h2 {
+            color: #fdbb2d;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .explanation h3 {
+            color: #fdbb2d;
+            margin: 20px 0 10px;
+        }
+        
+        .explanation p {
+            margin-bottom: 15px;
+        }
+        
+        .zoom-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .zoom-display {
+            background: rgba(40, 40, 50, 0.8);
+            padding: 10px 15px;
+            border-radius: 5px;
+            text-align: center;
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .controls {
+                flex: 1;
+            }
+            
+            .game-area {
+                height: 400px;
+            }
+            
+            .stat-value {
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🐜 Hormiga de Langton</h1>
+            <p class="subtitle">Un autómata celular con comportamiento emergente</p>
+        </header>
+        
+        <div class="content">
+            <div class="game-area">
+                <div class="canvas-container">
+                    <canvas id="gameCanvas"></canvas>
+                </div>
+            </div>
+            
+            <div class="controls">
+                <div class="button-group">
+                    <button id="playBtn" class="play-btn">▶ PLAY</button>
+                    <button id="pauseBtn" class="pause-btn">⏸ PAUSE</button>
+                    <button id="nextBtn" class="next-btn">⏭ NEXT</button>
+                    <button id="resetBtn" class="reset-btn">🔄 RESET</button>
+                </div>
+                
+                <div class="zoom-controls">
+                    <button id="zoomInBtn" class="zoom-btn">🔍 ZOOM +</button>
+                    <div class="zoom-display" id="zoomLevel">100%</div>
+                    <button id="zoomOutBtn" class="zoom-btn">🔎 ZOOM -</button>
+                </div>
+                
+                <div class="button-group">
+                    <button id="speedUpBtn" class="speed-btn">⚡ SPEED +</button>
+                    <button id="speedDownBtn" class="speed-btn">🐢 SPEED -</button>
+                    <button id="helpBtn" class="help-btn">❓ EXPLICACIÓN</button>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-box">
+                        <div class="stat-value" id="steps">0</div>
+                        <div class="stat-label">Pasos</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="speed">5</div>
+                        <div class="stat-label">Velocidad</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="state">PAUSADO</div>
+                        <div class="stat-label">Estado</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="direction">NORTE</div>
+                        <div class="stat-label">Dirección</div>
+                    </div>
+                </div>
+                
+                <div class="phase-indicator">
+                    <div class="stat-label">FASE ACTUAL:</div>
+                    <div class="phase-text" id="phase">FASE CAÓTICA</div>
+                </div>
+                
+                <div class="rules">
+                    <h3>Reglas de la Hormiga</h3>
+                    <ul>
+                        <li>En celda <strong>blanca</strong> → Gira 90° <strong>derecha</strong> → Cambia a <strong>negra</strong></li>
+                        <li>En celda <strong>negra</strong> → Gira 90° <strong>izquierda</strong> → Cambia a <strong>blanca</strong></li>
+                        <li><strong>Avanza</strong> un paso hacia adelante</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal de explicación -->
+    <div id="helpModal" class="modal">
+        <div class="modal-content">
+            <div class="explanation">
+                <h2>🐜 Hormiga de Langton</h2>
+                
+                <h3>¿Qué es?</h3>
+                <p>La Hormiga de Langton es un autómata celular bidimensional con un conjunto de reglas muy simples, pero que produce comportamientos complejos y emergentes. Fue inventada por Chris Langton en 1986.</p>
+                
+                <h3>Reglas Simples</h3>
+                <p>El comportamiento de la hormiga se rige por dos reglas fundamentales:</p>
+                <ul>
+                    <li>Si la hormiga está en una celda <strong>blanca</strong>, gira 90° a la <strong>derecha</strong>, cambia la celda a <strong>negra</strong> y avanza un paso.</li>
+                    <li>Si la hormiga está en una celda <strong>negra</strong>, gira 90° a la <strong>izquierda</strong>, cambia la celda a <strong>blanca</strong> y avanza un paso.</li>
+                </ul>
+                
+                <h3>Comportamiento Emergente</h3>
+                <p>Lo fascinante de la Hormiga de Langton es que de estas reglas simples emerge un comportamiento complejo:</p>
+                <ol>
+                    <li><strong>Fase Caótica (0-500 pasos):</strong> Movimientos aparentemente aleatorios que crean patrones irregulares.</li>
+                    <li><strong>Fase de Patrones Repetitivos (500-10,000 pasos):</strong> Comienza a formar patrones simétricos y repetitivos.</li>
+                    <li><strong>"Carrera" Estable (>10,000 pasos):</strong> La hormiga entra en un ciclo repetitivo que la hace moverse en diagonal indefinidamente, construyendo una "autopista".</li>
+                </ol>
+                
+                <h3>Aplicaciones</h3>
+                <p>La Hormiga de Langton es estudiada en:</p>
+                <ul>
+                    <li><strong>Computación:</strong> Como ejemplo de sistema con reglas simples pero comportamiento complejo.</li>
+                    <li><strong>Biología:</strong> Para modelar comportamientos emergentes en colonias de insectos.</li>
+                    <li><strong>Filosofía:</strong> En discusiones sobre determinismo y libre albedrío.</li>
+                </ul>
+                
+                <button class="close-btn" id="closeHelp">CERRAR EXPLICACIÓN</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class LangtonsAnt {
+            constructor() {
+                this.canvas = document.getElementById('gameCanvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Configuración inicial
+                this.baseCellSize = 6;
+                this.cellSize = this.baseCellSize;
+                this.gridWidth = 100;
+                this.gridHeight = 100;
+                this.zoom = 1.0;
+                
+                // Estado del juego
+                this.grid = this.createGrid();
+                this.ant = {
+                    x: Math.floor(this.gridWidth / 2),
+                    y: Math.floor(this.gridHeight / 2),
+                    direction: 0 // 0: arriba, 1: derecha, 2: abajo, 3: izquierda
+                };
+                
+                this.isRunning = false;
+                this.speed = 5;
+                this.steps = 0;
+                this.animationId = null;
+                
+                // Configurar canvas
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Inicializar eventos
+                this.initializeEvents();
+                
+                // Dibujar estado inicial
+                this.draw();
+                this.updateUI();
+            }
+            
+            createGrid() {
+                return Array(this.gridHeight).fill().map(() => Array(this.gridWidth).fill(0));
+            }
+            
+            resizeCanvas() {
+                // El canvas interno crece con el zoom, pero el contenedor mantiene su tamaño
+                const effectiveCellSize = this.cellSize * this.zoom;
+                this.canvas.width = this.gridWidth * effectiveCellSize;
+                this.canvas.height = this.gridHeight * effectiveCellSize;
+                this.draw();
+            }
+            
+            initializeEvents() {
+                // Botones de control
+                document.getElementById('playBtn').addEventListener('click', () => this.play());
+                document.getElementById('pauseBtn').addEventListener('click', () => this.pause());
+                document.getElementById('nextBtn').addEventListener('click', () => this.nextStep());
+                document.getElementById('resetBtn').addEventListener('click', () => this.reset());
+                document.getElementById('speedUpBtn').addEventListener('click', () => this.changeSpeed(1));
+                document.getElementById('speedDownBtn').addEventListener('click', () => this.changeSpeed(-1));
+                document.getElementById('zoomInBtn').addEventListener('click', () => this.changeZoom(0.2));
+                document.getElementById('zoomOutBtn').addEventListener('click', () => this.changeZoom(-0.2));
+                document.getElementById('helpBtn').addEventListener('click', () => this.showHelp());
+                document.getElementById('closeHelp').addEventListener('click', () => this.hideHelp());
+            }
+            
+            nextStep() {
+                this.moveAnt();
+                this.steps++;
+                this.draw();
+                this.updateUI();
+            }
+            
+            moveAnt() {
+                const { x, y } = this.ant;
+                
+                // Aplicar reglas de Langton
+                if (this.grid[y][x] === 0) { // Celda blanca
+                    // Gira a la derecha
+                    this.ant.direction = (this.ant.direction + 1) % 4;
+                    // Cambia a negro
+                    this.grid[y][x] = 1;
+                } else { // Celda negra
+                    // Gira a la izquierda
+                    this.ant.direction = (this.ant.direction + 3) % 4;
+                    // Cambia a blanco
+                    this.grid[y][x] = 0;
+                }
+                
+                // Avanza un paso
+                switch (this.ant.direction) {
+                    case 0: // Arriba
+                        this.ant.y = (this.ant.y - 1 + this.gridHeight) % this.gridHeight;
+                        break;
+                    case 1: // Derecha
+                        this.ant.x = (this.ant.x + 1) % this.gridWidth;
+                        break;
+                    case 2: // Abajo
+                        this.ant.y = (this.ant.y + 1) % this.gridHeight;
+                        break;
+                    case 3: // Izquierda
+                        this.ant.x = (this.ant.x - 1 + this.gridWidth) % this.gridWidth;
+                        break;
+                }
+            }
+            
+            draw() {
+                // Limpiar canvas
+                this.ctx.fillStyle = '#000';
+                this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+                
+                const effectiveCellSize = this.cellSize * this.zoom;
+                
+                // Dibujar celdas
+                for (let y = 0; y < this.gridHeight; y++) {
+                    for (let x = 0; x < this.gridWidth; x++) {
+                        if (this.grid[y][x] === 1) { // Celda negra
+                            this.ctx.fillStyle = '#333';
+                            this.ctx.fillRect(x * effectiveCellSize, y * effectiveCellSize, effectiveCellSize, effectiveCellSize);
+                        }
+                    }
+                }
+                
+                // Dibujar la hormiga
+                this.drawAnt();
+            }
+            
+            drawAnt() {
+                const { x, y, direction } = this.ant;
+                const effectiveCellSize = this.cellSize * this.zoom;
+                const centerX = x * effectiveCellSize + effectiveCellSize / 2;
+                const centerY = y * effectiveCellSize + effectiveCellSize / 2;
+                const size = effectiveCellSize * 0.7;
+                
+                this.ctx.fillStyle = '#e74c3c'; // Color rojo para la hormiga
+                
+                // Dibujar cuerpo de la hormiga según la dirección
+                this.ctx.save();
+                this.ctx.translate(centerX, centerY);
+                this.ctx.rotate(direction * Math.PI / 2);
+                
+                // Cuerpo alargado en la dirección del movimiento
+                this.ctx.fillRect(-size/2, -size/3, size, size * 2/3);
+                
+                // Cabeza (círculo en la parte delantera)
+                this.ctx.beginPath();
+                this.ctx.arc(size/2, 0, size/3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.restore();
+            }
+            
+            play() {
+                if (!this.isRunning) {
+                    this.isRunning = true;
+                    this.animate();
+                    this.updateUI();
+                }
+            }
+            
+            pause() {
+                this.isRunning = false;
+                if (this.animationId) {
+                    cancelAnimationFrame(this.animationId);
+                    this.animationId = null;
+                }
+                this.updateUI();
+            }
+            
+            animate() {
+                if (!this.isRunning) return;
+                
+                this.nextStep();
+                
+                // Control de velocidad (más velocidad = menos delay)
+                const delay = Math.max(10, 200 - (this.speed * 19));
+                
+                this.animationId = setTimeout(() => {
+                    this.animationId = requestAnimationFrame(() => this.animate());
+                }, delay);
+            }
+            
+            reset() {
+                this.pause();
+                this.grid = this.createGrid();
+                this.ant = {
+                    x: Math.floor(this.gridWidth / 2),
+                    y: Math.floor(this.gridHeight / 2),
+                    direction: 0
+                };
+                this.steps = 0;
+                this.zoom = 1.0;
+                this.resizeCanvas();
+                this.draw();
+                this.updateUI();
+            }
+            
+            changeSpeed(delta) {
+                this.speed = Math.max(1, Math.min(10, this.speed + delta));
+                this.updateUI();
+            }
+            
+            changeZoom(delta) {
+                this.zoom = Math.max(0.5, Math.min(3.0, this.zoom + delta));
+                this.resizeCanvas();
+                this.updateUI();
+            }
+            
+            showHelp() {
+                document.getElementById('helpModal').style.display = 'block';
+            }
+            
+            hideHelp() {
+                document.getElementById('helpModal').style.display = 'none';
+            }
+            
+            updateUI() {
+                // Actualizar valores sin cambiar el diseño
+                document.getElementById('steps').textContent = this.steps.toLocaleString();
+                document.getElementById('speed').textContent = this.speed;
+                document.getElementById('state').textContent = this.isRunning ? 'EJECUTANDO' : 'PAUSADO';
+                
+                const directions = ['NORTE', 'ESTE', 'SUR', 'OESTE'];
+                document.getElementById('direction').textContent = directions[this.ant.direction];
+                
+                // Actualizar zoom
+                document.getElementById('zoomLevel').textContent = Math.round(this.zoom * 100) + '%';
+                
+                // Determinar fase actual
+                let phase;
+                if (this.steps < 500) {
+                    phase = "FASE CAÓTICA";
+                } else if (this.steps < 10000) {
+                    phase = "PATRONES REPETITIVOS";
+                } else {
+                    phase = "CARRERA ESTABLE";
+                }
+                document.getElementById('phase').textContent = phase;
+            }
+        }
+        
+        // Inicializar el juego cuando se carga la página
+        window.addEventListener('load', () => {
+            new LangtonsAnt();
+        });
+    </script>
+</body>
+</html>
