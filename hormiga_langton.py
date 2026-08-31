@@ -1,24 +1,7 @@
-# -*- coding: utf-8 -*-
-"""
-Día 5 - Hormiga de Langton  ·  autómata celular (pygame)
---------------------------------------------------------
-Versión mejorada de un proyecto propio:
-  · Rápida: miles de pasos por frame (bucle sobre bytearray) + Turbo.
-  · Reglas generalizadas (turmites): además de la clásica RL, reglas
-    multicolor como RLR, LLRR, etc. → patrones emergentes preciosos.
-  · Render vectorizado (numpy) con recorte por viewport → zoom sin lag.
-  · Zoom con la rueda (centrado en el cursor) y arrastre para mover.
-
-Controles: Espacio play/pausa · → paso · R reiniciar · C limpiar · T turbo
-           A añadir hormiga · , . cambiar regla · +/- velocidad · H ayuda
-Ejecuta con "Hormiga.bat".
-"""
-
 import sys
 import math
 import colorsys
 import random
-
 import numpy as np
 import pygame
 
